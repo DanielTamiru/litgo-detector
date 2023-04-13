@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Venv
+litgo-detector/
+
+# Training data images
+images/
+
+# MacOS
+.DS_Store
