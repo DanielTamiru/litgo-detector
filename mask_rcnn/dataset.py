@@ -95,13 +95,6 @@ class CocoDataset(torch.utils.data.Dataset):
 
 
 
-def get_transform(train=False) -> Callable:
-    transforms = [T.ToTensor()]
-    if train: transforms.append(T.RandomHorizontalFlip(0.5))
-        
-    return T.Compose(transforms)
-
-
 
 ############ UAVVaste ############
 

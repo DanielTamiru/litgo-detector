@@ -1,4 +1,5 @@
-from mask_rcnn.dataset import UAVVasteDataset, get_transform
+from mask_rcnn.dataset import UAVVasteDataset
+from mask_rcnn.helpers.train import get_transform
 
 d = UAVVasteDataset(get_transform(train=True))
 imgs, targets = d[0]
