@@ -39,7 +39,7 @@ class CocoDataset(torch.utils.data.Dataset):
 
         target = {
             "boxes": torch.as_tensor(boxes, dtype=torch.float32),
-            "labels": torch.ones((len(annotations),), dtype=torch.int64),
+            "labels": torch.as_tensor(list(map(lambda a: self.to_label(a["category_id"]), annotations)), dtype=torch.int64),
             "image_id": torch.tensor([idx], dtype=torch.int64),
             "area": (boxes_tensor[:, 3] - boxes_tensor[:, 1]) * (boxes_tensor[:, 2] - boxes_tensor[:, 0]),
             "iscrowd": torch.tensor(list(map(lambda a: a["iscrowd"], annotations)), dtype=torch.uint8),
@@ -93,6 +93,21 @@ class CocoDataset(torch.utils.data.Dataset):
                 else:
                     print(f'Failed to download: {img_obj["file_name"]}')
 
+
+    def to_label(self, category_id: int) -> int: 
+        #bboox label is offset by 1 because 0 should be considered 'background'
+        return category_id + 1
+
+    def to_category_id(self, label: int) -> int: 
+        return label - 1
+    
+    def get_category_from_label(self, label: int) -> Tuple[str, str]:
+        cat_id = self.to_category_id(label)
+        category = self.coco.loadCats([cat_id])[0]
+        return category["name"], category["supercategory"]
+    
+    def get_num_classes(self) -> int:
+        return len(self.coco.getCatIds()) + 1
 
 
 
