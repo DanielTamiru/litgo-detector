@@ -1,4 +1,4 @@
-# litgo-detectoor
+# litgo-detector
 
 
 ### **LITGO.AI**
