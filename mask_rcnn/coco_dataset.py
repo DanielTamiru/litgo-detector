@@ -1,20 +1,39 @@
 import os
 from io import BytesIO
-from typing import Callable, Tuple, List
 
-from definitions import ROOT_DIR
-import mask_rcnn.helpers.transforms as T
-
-import torch
+import torch, numpy
 from pycocotools.coco import COCO
 
 from PIL import Image
 from tqdm import tqdm
 import requests
 
+from typing import Callable, Tuple, List
+
 
 
 class CocoDataset(torch.utils.data.Dataset):
+    def download_images(self) -> None:
+        raise NotImplementedError
+
+    def get_num_classes(self) -> int:
+        raise NotImplementedError
+    
+    def get_category_from_label(self, label: int) -> Tuple[str, str]:
+        raise NotImplementedError
+    
+    @staticmethod
+    def to_label(category_id: int) -> int: 
+        #bboox label is offset by 1 because 0 should be considered 'background'
+        return category_id + 1
+    
+    @staticmethod
+    def to_category_id(label: int) -> int: 
+        return label - 1
+    
+
+
+class CocoDatasetImpl(CocoDataset):
 
     def __init__(self, img_dir: str, annot_path: str, transforms: Callable, auto_download=False):
         self.root = img_dir # training image directory
@@ -31,10 +50,10 @@ class CocoDataset(torch.utils.data.Dataset):
         annotations = self.coco.loadAnns(self.coco.getAnnIds(imgIds=[idx]))
         
         # convert annotation boxes to tensor
-        boxes = self._get_converted_annotation_bboxes(annotations)
+        boxes = numpy.array(self._get_converted_annotation_bboxes(annotations))
         boxes_tensor = torch.as_tensor(boxes, dtype=torch.float32)
         # convert annotation segmentation masks to tensor
-        masks = [self.coco.annToMask(annot) for annot in annotations]
+        masks = numpy.array([self.coco.annToMask(annot) for annot in annotations])
         masks_tensor = torch.as_tensor(masks, dtype=torch.uint8)
 
         target = {
@@ -53,24 +72,6 @@ class CocoDataset(torch.utils.data.Dataset):
 
     def __len__(self) -> int:
         return len(self.coco.imgs)
-    
-
-    def _get_converted_annotation_bboxes(self, annotations) -> List[Tuple[int, int, int, int]]:
-        """
-        COCO represents bounding boxes using (xmin, ymin, width, height)
-        but we need them in (xmin, ymin, xmax, ymax) format
-        """
-        boxes = []
-
-        for annotation in annotations:
-            xmin, ymin = annotation["bbox"][0], annotation["bbox"][1]
-            
-            xmax = xmin + annotation["bbox"][2] # + width
-            ymax = ymin + annotation["bbox"][3] # + height
-        
-            boxes.append((xmin, ymin, xmax, ymax))
-
-        return boxes
     
 
     def download_images(self) -> None:
@@ -94,32 +95,29 @@ class CocoDataset(torch.utils.data.Dataset):
                     print(f'Failed to download: {img_obj["file_name"]}')
 
 
-    def to_label(self, category_id: int) -> int: 
-        #bboox label is offset by 1 because 0 should be considered 'background'
-        return category_id + 1
-
-    def to_category_id(self, label: int) -> int: 
-        return label - 1
-    
-    def get_category_from_label(self, label: int) -> Tuple[str, str]:
-        cat_id = self.to_category_id(label)
-        category = self.coco.loadCats([cat_id])[0]
-        return category["name"], category["supercategory"]
-    
     def get_num_classes(self) -> int:
         return len(self.coco.getCatIds()) + 1
 
 
+    def get_category_from_label(self, label: int) -> Tuple[str, str]:
+        cat_id = self.to_category_id(label)
+        category = self.coco.loadCats([cat_id])[0]
+        return category["name"], category["supercategory"]
 
-############ UAVVaste ############
 
-class UAVVasteDataset(CocoDataset):
-    IMG_HEIGHT = 2160; IMG_WIDTH = 3840; 
-  
-    def __init__(self, transforms: Callable):
-        super().__init__(
-            img_dir=os.path.join(ROOT_DIR, 'data/UAVVaste/images'),
-            annot_path=os.path.join(ROOT_DIR, 'data/UAVVaste/annotations.json'),
-            transforms=transforms,
-            auto_download=True
-        )
+    def _get_converted_annotation_bboxes(self, annotations) -> List[Tuple[int, int, int, int]]:
+        """
+        COCO represents bounding boxes using (xmin, ymin, width, height)
+        but we need them in (xmin, ymin, xmax, ymax) format
+        """
+        boxes = []
+
+        for annotation in annotations:
+            xmin, ymin = annotation["bbox"][0], annotation["bbox"][1]
+            
+            xmax = xmin + annotation["bbox"][2] # + width
+            ymax = ymin + annotation["bbox"][3] # + height
+        
+            boxes.append((xmin, ymin, xmax, ymax))
+
+        return boxes
