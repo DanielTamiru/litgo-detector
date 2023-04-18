@@ -40,7 +40,7 @@ class TacoDataset(CocoDatasetImpl):
 ########### Factory ############
 
 def coco_dataset_factory(name: str, train: bool) -> CocoDatasetImpl:
-    match name:
-        case "UAVVaste": return UAVVasteDataset(get_transform(train=train))
-        case "TACO": return TacoDataset(get_transform(train=train))
+    if name == "UAVVaste": return UAVVasteDataset(get_transform(train=train))
+    elif name == "TACO": return TacoDataset(get_transform(train=train))
+    raise Exception(f"'{name}' is not a valid dataset name")
     
