@@ -12,6 +12,7 @@ import torchvision
 
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
+from mask_rcnn.coco_dataset import CocoDataset
 
 import mask_rcnn.helpers.transforms as T
 
@@ -201,11 +202,13 @@ def convert_to_coco_api(ds):
 def get_coco_api_from_dataset(dataset):
     for i in range(10):
         if isinstance(dataset, torchvision.datasets.CocoDetection):
-            break
+            return dataset.coco
+        if isinstance(dataset, CocoDataset):
+            return dataset.coco
+        
         if isinstance(dataset, torch.utils.data.Subset):
             dataset = dataset.dataset
-    if isinstance(dataset, torchvision.datasets.CocoDetection):
-        return dataset.coco
+            
     return convert_to_coco_api(dataset)
 
 

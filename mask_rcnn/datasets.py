@@ -20,7 +20,7 @@ class UAVVasteDataset(CocoDatasetImpl):
         )
 
     def name(self) -> str:
-        return "UAVVVaste"
+        return "UAVVaste"
     
 
 class TacoDataset(CocoDatasetImpl):

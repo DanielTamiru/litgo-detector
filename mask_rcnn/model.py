@@ -86,15 +86,17 @@ class LitgoModelImpl(LitgoModel):
         if save: 
             filename = f"{self.dataset.name()}-{int(datetime.today().timestamp())}.pt"
             torch.save(self.model.state_dict(), path.join(SAVED_MODELS_DIR, filename))
+            torch.save(self.model, path.join(SAVED_MODELS_DIR, ('entire' + filename)))
 
     
     def _get_data_loaders(self,  batch_size: int, test_batch_size: int) -> Tuple[DataLoader, DataLoader]:
-        validation_dataset = coco_dataset_factory(self.dataset.name(), train=False)
-
+        
         # split the dataset into train and validation sets
         indices = torch.randperm(len(self.dataset)).tolist()
         training_dataset = torch.utils.data.Subset(self.dataset, indices[:-50])
-        validation_dataset = torch.utils.data.Subset(validation_dataset, indices[-50:])
+        validation_dataset = torch.utils.data.Subset(
+            coco_dataset_factory(self.dataset.name(), train=False), indices[-50:]
+        )
 
         # define training and validation data loaders
         data_loader = torch.utils.data.DataLoader(

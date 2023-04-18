@@ -13,6 +13,8 @@ from typing import Callable, Tuple, List
 
 
 class CocoDataset(torch.utils.data.Dataset):
+    coco: COCO
+
     def download_images(self) -> None:
         raise NotImplementedError
 
@@ -24,7 +26,7 @@ class CocoDataset(torch.utils.data.Dataset):
     
     @staticmethod
     def to_label(category_id: int) -> int: 
-        #bboox label is offset by 1 because 0 should be considered 'background'
+        # bboox label is offset by 1 because 0 should be considered 'background'
         return category_id + 1
     
     @staticmethod
