@@ -8,8 +8,9 @@ from PIL import Image
 from tqdm import tqdm
 import requests
 
-from typing import Callable, Tuple, List
+from typing import Callable, Tuple
 
+from mask_rcnn.helpers.coco_utils import ConvertCocoPolysToMask
 
 
 class CocoDataset(torch.utils.data.Dataset):
@@ -43,31 +44,23 @@ class CocoDatasetImpl(CocoDataset):
         self.transforms = transforms # transformations 
 
         self.coco = COCO(annot_path) # Common Objects in Context manager
+        self.ids = list(sorted(self.coco.imgs.keys())) # indexes correspond to ids in the coco annotations
+
+        self.prepare = ConvertCocoPolysToMask()
+
         if auto_download: self.download_images()
 
 
     def __getitem__(self, idx) -> Tuple[torch.Tensor, dict[str, torch.Tensor]]:
-        img_path =  os.path.join(self.root, self.coco.loadImgs([idx])[0]["file_name"])
+        image_id = self.ids[idx]
+
+        img_path =  os.path.join(self.root, self.coco.loadImgs([image_id])[0]["file_name"])
         img = Image.open(img_path).convert("RGB")
 
-        annotations = self.coco.loadAnns(self.coco.getAnnIds(imgIds=[idx]))
+        annotations = self.coco.loadAnns(self.coco.getAnnIds(imgIds=[image_id]))
         
-        # convert annotation boxes to tensor
-        boxes = numpy.array(self._get_converted_annotation_bboxes(annotations))
-        boxes_tensor = torch.as_tensor(boxes, dtype=torch.float32)
-        # convert annotation segmentation masks to tensor
-        masks = numpy.array([self.coco.annToMask(annot) for annot in annotations])
-        masks_tensor = torch.as_tensor(masks, dtype=torch.uint8)
-
-        target = {
-            "boxes": torch.as_tensor(boxes, dtype=torch.float32),
-            "labels": torch.as_tensor(list(map(lambda a: self.to_label(a["category_id"]), annotations)), dtype=torch.int64),
-            "image_id": torch.tensor([idx], dtype=torch.int64),
-            "area": (boxes_tensor[:, 3] - boxes_tensor[:, 1]) * (boxes_tensor[:, 2] - boxes_tensor[:, 0]),
-            "iscrowd": torch.tensor(list(map(lambda a: a["iscrowd"], annotations)), dtype=torch.uint8),
-            "masks": masks_tensor
-        }
-
+        img, target = self.prepare(image=img, target={'image_id': image_id, 'annotations': annotations})
+  
         if self.transforms is not None:
             img, target = self.transforms(img, target)
         return img, target
@@ -106,21 +99,3 @@ class CocoDatasetImpl(CocoDataset):
         cat_id = self.to_category_id(label)
         category = self.coco.loadCats([cat_id])[0]
         return category["name"], category["supercategory"]
-
-
-    def _get_converted_annotation_bboxes(self, annotations) -> List[Tuple[int, int, int, int]]:
-        """
-        COCO represents bounding boxes using (xmin, ymin, width, height)
-        but we need them in (xmin, ymin, xmax, ymax) format
-        """
-        boxes = []
-
-        for annotation in annotations:
-            xmin, ymin = annotation["bbox"][0], annotation["bbox"][1]
-            
-            xmax = xmin + annotation["bbox"][2] # + width
-            ymax = ymin + annotation["bbox"][3] # + height
-        
-            boxes.append((xmin, ymin, xmax, ymax))
-
-        return boxes

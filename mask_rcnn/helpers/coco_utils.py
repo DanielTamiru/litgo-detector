@@ -12,7 +12,6 @@ import torchvision
 
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
-from mask_rcnn.coco_dataset import CocoDataset
 
 import mask_rcnn.helpers.transforms as T
 
@@ -53,6 +52,9 @@ def convert_coco_poly_to_mask(segmentations, height, width):
 
 
 class ConvertCocoPolysToMask(object):
+    def __init__(self, include_masks=True):
+        self.include_masks = include_masks
+
     def __call__(self, image, target):
         w, h = image.size
 
@@ -94,7 +96,7 @@ class ConvertCocoPolysToMask(object):
         target = {}
         target["boxes"] = boxes
         target["labels"] = classes
-        target["masks"] = masks
+        if self.include_masks: target["masks"] = masks
         target["image_id"] = image_id
         if keypoints is not None:
             target["keypoints"] = keypoints
@@ -201,15 +203,13 @@ def convert_to_coco_api(ds):
 
 def get_coco_api_from_dataset(dataset):
     for i in range(10):
-        if isinstance(dataset, torchvision.datasets.CocoDetection):
-            return dataset.coco
-        if isinstance(dataset, CocoDataset):
-            return dataset.coco
-        
         if isinstance(dataset, torch.utils.data.Subset):
             dataset = dataset.dataset
-            
-    return convert_to_coco_api(dataset)
+
+    try: 
+        return dataset.coco
+    except Exception:
+        return convert_to_coco_api(dataset)
 
 
 class CocoDetection(torchvision.datasets.CocoDetection):
