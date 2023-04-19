@@ -83,10 +83,7 @@ class LitgoModelImpl(LitgoModel):
             evaluate(self.model, data_loader_test, device=device)
         print("Done Training!")
 
-        if save: 
-            filename = f"{self.dataset.name()}-{int(datetime.today().timestamp())}.pt"
-            torch.save(self.model.state_dict(), path.join(SAVED_MODELS_DIR, filename))
-            torch.save(self.model, path.join(SAVED_MODELS_DIR, ('entire' + filename)))
+        if save: self._save()
 
     
     def _get_data_loaders(self,  batch_size: int, test_batch_size: int) -> Tuple[DataLoader, DataLoader]:
@@ -100,12 +97,21 @@ class LitgoModelImpl(LitgoModel):
 
         # define training and validation data loaders
         data_loader = torch.utils.data.DataLoader(
-            training_dataset, batch_size=batch_size, shuffle=True, num_workers=4,
+            training_dataset, batch_size=batch_size, shuffle=True, num_workers=2,
             collate_fn=utils.collate_fn)
 
         data_loader_test = torch.utils.data.DataLoader(
-            validation_dataset, batch_size=test_batch_size, shuffle=False, num_workers=4,
+            validation_dataset, batch_size=test_batch_size, shuffle=False, num_workers=2,
             collate_fn=utils.collate_fn)
         
         return data_loader, data_loader_test
+    
+
+    def _save(self):
+        timestamp = int(datetime.today().timestamp())
+        state_filename = f"{self.dataset.name()}-state-{timestamp}.pt"
+        model_filename = f"{self.dataset.name()}-model-{timestamp}.pt"
+
+        torch.save(self.model.state_dict(), path.join(SAVED_MODELS_DIR, state_filename))
+        torch.save(self.model, path.join(SAVED_MODELS_DIR, model_filename))
         

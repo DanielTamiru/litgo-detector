@@ -13,3 +13,8 @@ litgo-detector/
 
 # MacOS
 .DS_Store
+
+
+# Model save files are too large for github
+*.pt
+*.pth

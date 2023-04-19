@@ -31,6 +31,7 @@ class CocoDataset(torch.utils.data.Dataset):
     
     @staticmethod
     def to_category_id(label: int) -> int: 
+        # bboox label is offset by 1 because 0 should be considered 'background'
         return label - 1
     
 
