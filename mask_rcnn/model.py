@@ -1,11 +1,14 @@
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple, TypedDict
 
 import torch, torchvision
 from torch.utils.data import DataLoader
+from torchvision.transforms import ToTensor
 
-from torchvision.models.detection import MaskRCNN
+from torchvision.models.detection.generalized_rcnn import GeneralizedRCNN
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+from torchvision.models.detection import MaskRCNN
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
+
 from mask_rcnn.coco_dataset import CocoDataset
 
 from mask_rcnn.datasets import coco_dataset_factory
@@ -16,6 +19,7 @@ from mask_rcnn.helpers import utils
 from os import path
 from definitions import ROOT_DIR
 
+from PIL import Image
 from datetime import datetime
 
 
@@ -23,19 +27,33 @@ from datetime import datetime
 SAVED_MODELS_DIR = path.join(ROOT_DIR, "mask_rcnn/saved_models/")
 
 
+
+class EvalutationResult(TypedDict):
+    categories: List[str]
+    supercategories: List[str]
+    scores: List[int]
+    boxes: List[Tuple[float, float, float, float]]
+
+
+
 class LitgoModel:
-    model: MaskRCNN
+    model: GeneralizedRCNN
     dataset: CocoDataset
 
     def train(self, num_epochs: int, batch_size: int, test_batch_size: int, save: bool = True):
         raise NotImplementedError
     
+    def evaluate(self, image: Image, score_threshold: float) -> EvalutationResult:
+        raise NotImplementedError
+    
+    
 
-class LitgoModelImpl(LitgoModel):
+class MaskRCNNLitgoModel(LitgoModel):
+    model: MaskRCNN
 
     def __init__(self, dataset_name: str, saved_model_filename: Optional[str] = None) -> None:
         self.model = torchvision.models.detection.maskrcnn_resnet50_fpn(weights="DEFAULT")
-        self.dataset = coco_dataset_factory(dataset_name, train=True)
+        self.dataset = coco_dataset_factory(dataset_name, train=False)
 
         # get number of input features for the classifier
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features
@@ -51,7 +69,13 @@ class LitgoModelImpl(LitgoModel):
         )
 
         if saved_model_filename: # use pre-trained model:
-            self.model.load_state_dict(torch.load(path.join(SAVED_MODELS_DIR, saved_model_filename)))
+            if torch.cuda.is_available():
+                self.model.load_state_dict(torch.load(path.join(SAVED_MODELS_DIR, saved_model_filename)))
+            else:
+                self.model.load_state_dict(torch.load(
+                    path.join(SAVED_MODELS_DIR, saved_model_filename),
+                    map_location=torch.device('cpu')
+                ))
 
 
     def train(self, num_epochs: int, batch_size: int, test_batch_size: int, save: bool = True):
@@ -86,13 +110,33 @@ class LitgoModelImpl(LitgoModel):
         if save: self._save()
 
     
+    def evaluate(self, image: Image, score_threshold: float):
+        self.model.eval()
+        image_tensor = ToTensor()(image)
+
+        with torch.no_grad():
+            prediction = self.model([image_tensor])[0]
+
+            # scores are guanteed to be in descending order so find left sublist that meets threshold
+            cutoff = 0
+            while prediction["scores"][cutoff] >= score_threshold: cutoff += 1 # TODO: Do binary search instead of linear
+            labels = prediction["labels"][:cutoff].tolist()
+    
+            return EvalutationResult(
+                categories=list(map(lambda l: self.dataset.get_category_from_label(l)[0],labels)),
+                supercategories=list(map(lambda l: self.dataset.get_category_from_label(l)[1],labels)),
+                scores= prediction["scores"][:cutoff].tolist(),
+                boxes=prediction["boxes"][:cutoff].tolist()
+            )
+
+    
     def _get_data_loaders(self,  batch_size: int, test_batch_size: int) -> Tuple[DataLoader, DataLoader]:
         
         # split the dataset into train and validation sets
         indices = torch.randperm(len(self.dataset)).tolist()
         training_dataset = torch.utils.data.Subset(self.dataset, indices[:-50])
         validation_dataset = torch.utils.data.Subset(
-            coco_dataset_factory(self.dataset.name(), train=False), indices[-50:]
+            coco_dataset_factory(self.dataset.get_name(), train=True), indices[-50:]
         )
 
         # define training and validation data loaders
@@ -109,9 +153,9 @@ class LitgoModelImpl(LitgoModel):
 
     def _save(self):
         timestamp = int(datetime.today().timestamp())
-        state_filename = f"{self.dataset.name()}-state-{timestamp}.pt"
-        model_filename = f"{self.dataset.name()}-model-{timestamp}.pt"
-
+        state_filename = f"{self.dataset.get_name()}-state-{timestamp}.pt"
         torch.save(self.model.state_dict(), path.join(SAVED_MODELS_DIR, state_filename))
-        torch.save(self.model, path.join(SAVED_MODELS_DIR, model_filename))
+        # Uncomment to also save entire model (not preffered):
+        # model_filename = f"{self.dataset.get_name()}-model-{timestamp}.pt"
+        # torch.save(self.model, path.join(SAVED_MODELS_DIR, model_filename))
         

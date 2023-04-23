@@ -1,19 +1,12 @@
-from mask_rcnn.model import LitgoModelImpl
-
+from mask_rcnn.model import MaskRCNNLitgoModel
+from mask_rcnn.draw import draw_boxes
+from PIL import Image
 
 if __name__ == "__main__":
-    model = LitgoModelImpl(dataset_name="UAVVaste")
-
-    ## Verifty dataset is working
-    # print(len(model.dataset))
-
-    # imgs, targets = model.dataset[0]
-    # print(imgs.shape)
-    # print()
-    # for k,v in targets.items():
-    #     print(k, v.shape)
-
-    # print(model.dataset.get_num_classes())
-    # print(model.dataset.name())
+    model = MaskRCNNLitgoModel(dataset_name="TACO", saved_model_filename="TACO-state-1681930038.pt")
     
-    model.train(num_epochs=10, batch_size=2, test_batch_size=1)
+    with Image.open("litter.jpeg") as img:
+        result = model.evaluate(img, score_threshold=0.5)
+        result_img = draw_boxes(img, result, color="blue", draw_score=False)
+        # result_img.show()
+        result_img.save('labeled_litter.jpeg')

@@ -16,6 +16,9 @@ from mask_rcnn.helpers.coco_utils import ConvertCocoPolysToMask
 class CocoDataset(torch.utils.data.Dataset):
     coco: COCO
 
+    def get_name(self) -> str:
+        raise NotImplementedError
+    
     def download_images(self) -> None:
         raise NotImplementedError
 
