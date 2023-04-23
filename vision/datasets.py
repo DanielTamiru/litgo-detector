@@ -2,8 +2,8 @@ import os
 from typing import Callable
 
 
-from mask_rcnn.coco_dataset import CocoDatasetImpl
-from mask_rcnn.helpers.train import get_transform
+from vision.coco_dataset import CocoDatasetImpl
+from vision.helpers.train import get_transform
 
 from definitions import ROOT_DIR
 

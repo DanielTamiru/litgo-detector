@@ -16,7 +16,7 @@ import pycocotools.mask as mask_util
 
 from collections import defaultdict
 
-from mask_rcnn.helpers import utils
+from vision.helpers import utils
 
 
 class CocoEvaluator(object):

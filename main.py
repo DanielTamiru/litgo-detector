@@ -1,5 +1,5 @@
-from mask_rcnn.model import MaskRCNNLitgoModel
-from mask_rcnn.draw import draw_boxes
+from vision.model import MaskRCNNLitgoModel
+from vision.draw import draw_boxes
 from PIL import Image
 
 if __name__ == "__main__":

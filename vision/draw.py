@@ -1,5 +1,5 @@
 
-from mask_rcnn.model import EvalutationResult
+from vision.model import EvalutationResult
 from PIL import Image, ImageDraw
 
 def draw_boxes(img: Image, result: EvalutationResult, color="red", draw_categories=True, draw_score=True) -> Image:

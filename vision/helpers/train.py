@@ -13,13 +13,13 @@ import torchvision
 import torchvision.models.detection
 import torchvision.models.detection.mask_rcnn
 
-from mask_rcnn.helpers.coco_utils import get_coco, get_coco_kp
+from vision.helpers.coco_utils import get_coco, get_coco_kp
 
-from mask_rcnn.helpers.group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
-from mask_rcnn.helpers.engine import train_one_epoch, evaluate
+from vision.helpers.group_by_aspect_ratio import GroupedBatchSampler, create_aspect_ratio_groups
+from vision.helpers.engine import train_one_epoch, evaluate
 
-from mask_rcnn.helpers import utils
-import mask_rcnn.helpers.transforms as T
+from vision.helpers import utils
+import vision.helpers.transforms as T
 
 
 def get_dataset(name, image_set, transform):

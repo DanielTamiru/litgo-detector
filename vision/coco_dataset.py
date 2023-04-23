@@ -10,7 +10,7 @@ import requests
 
 from typing import Callable, Tuple
 
-from mask_rcnn.helpers.coco_utils import ConvertCocoPolysToMask
+from vision.helpers.coco_utils import ConvertCocoPolysToMask
 
 
 class CocoDataset(torch.utils.data.Dataset):

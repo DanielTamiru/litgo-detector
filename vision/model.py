@@ -9,12 +9,12 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection import MaskRCNN
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
-from mask_rcnn.coco_dataset import CocoDataset
+from vision.coco_dataset import CocoDataset
 
-from mask_rcnn.datasets import coco_dataset_factory
+from vision.datasets import coco_dataset_factory
 
-from mask_rcnn.helpers.engine import train_one_epoch, evaluate
-from mask_rcnn.helpers import utils
+from vision.helpers.engine import train_one_epoch, evaluate
+from vision.helpers import utils
 
 from os import path
 from definitions import ROOT_DIR
