@@ -9,7 +9,8 @@ Litgo is a microservice-based application I am developing for reporting/cleaning
 
 This is the repo for the decomposed Litgo detector service, an HTTP server that receives images in PUT requests and returns information about the amount and type of litter in those images, including an annotated image with labels and boxes.
 
-[Image]
+![labeled_litter](https://user-images.githubusercontent.com/46784904/233865846-0d740a81-5d87-4b6f-b395-f09dfe1378b6.jpeg)
+
 
 While this service was built for Litgo, none of its code or functionality is Litgo-specific. Feel free to incorporate this service into your own innovations. If you are new to computer vision models, object detection, or machine learning in general, don't worry! So was I before working on this project. I included a [wiki doc](https://github.com/DanielTamiru/litgo-detector/wiki/CNNs-and-Object-Detection) that helps explain what's going on at a high level.
 
