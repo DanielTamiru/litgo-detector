@@ -9,22 +9,22 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection import MaskRCNN
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
-from vision.coco_dataset import CocoDataset
+from vision.dataset import CocoDataset
 
-from vision.datasets import coco_dataset_factory
+from vision.dataset_factory import create_dataset
 
 from vision.helpers.engine import train_one_epoch, evaluate
 from vision.helpers import utils
 
 from os import path
-from definitions import ROOT_DIR
+from constants import ROOT_DIR
 
 from PIL import Image
 from datetime import datetime
 
 
 
-SAVED_MODELS_DIR = path.join(ROOT_DIR, "mask_rcnn/saved_models/")
+SAVED_MODELS_DIR = path.join(ROOT_DIR, "vision/saved_models/")
 
 
 
@@ -40,20 +40,34 @@ class LitgoModel:
     model: GeneralizedRCNN
     dataset: CocoDataset
 
-    def train(self, num_epochs: int, batch_size: int, test_batch_size: int, save: bool = True):
+    def __init__(self, name: str) -> None:
+        self.name
+
+    def train(self, num_epochs: int, batch_size: int, test_batch_size: int):
         raise NotImplementedError
     
     def evaluate(self, image: Image, score_threshold: float) -> EvalutationResult:
         raise NotImplementedError
     
+    def name(self):
+        return self.name
+
+    def save(self):
+        timestamp = int(datetime.today().timestamp())
+        state_filename = f"{self.dataset.get_name()}-{self.name()}-state-{timestamp}.pt"
+        torch.save(self.model.state_dict(), path.join(SAVED_MODELS_DIR, state_filename))
     
+    
+
 
 class MaskRCNNLitgoModel(LitgoModel):
     model: MaskRCNN
 
     def __init__(self, dataset_name: str, saved_model_filename: Optional[str] = None) -> None:
+        super().__init__("MaskRCNN")
+
         self.model = torchvision.models.detection.maskrcnn_resnet50_fpn(weights="DEFAULT")
-        self.dataset = coco_dataset_factory(dataset_name, train=False)
+        self.dataset = create_dataset(dataset_name, train=False)
 
         # get number of input features for the classifier
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features
@@ -69,6 +83,9 @@ class MaskRCNNLitgoModel(LitgoModel):
         )
 
         if saved_model_filename: # use pre-trained model:
+            if not path.isfile(path.join(SAVED_MODELS_DIR, saved_model_filename)):
+                raise Exception(f"Could not find {saved_model_filename} in saved_models directory")
+            
             if torch.cuda.is_available():
                 self.model.load_state_dict(torch.load(path.join(SAVED_MODELS_DIR, saved_model_filename)))
             else:
@@ -78,7 +95,7 @@ class MaskRCNNLitgoModel(LitgoModel):
                 ))
 
 
-    def train(self, num_epochs: int, batch_size: int, test_batch_size: int, save: bool = True):
+    def train(self, num_epochs: int, batch_size: int, test_batch_size: int):
         # get data loaders
         data_loader, data_loader_test = self._get_data_loaders(batch_size, test_batch_size)
 
@@ -107,9 +124,7 @@ class MaskRCNNLitgoModel(LitgoModel):
             evaluate(self.model, data_loader_test, device=device)
         print("Done Training!")
 
-        if save: self._save()
 
-    
     def evaluate(self, image: Image, score_threshold: float):
         self.model.eval()
         image_tensor = ToTensor()(image)
@@ -136,7 +151,7 @@ class MaskRCNNLitgoModel(LitgoModel):
         indices = torch.randperm(len(self.dataset)).tolist()
         training_dataset = torch.utils.data.Subset(self.dataset, indices[:-50])
         validation_dataset = torch.utils.data.Subset(
-            coco_dataset_factory(self.dataset.get_name(), train=True), indices[-50:]
+            create_dataset(self.dataset.get_name(), train=True), indices[-50:]
         )
 
         # define training and validation data loaders
@@ -150,12 +165,3 @@ class MaskRCNNLitgoModel(LitgoModel):
         
         return data_loader, data_loader_test
     
-
-    def _save(self):
-        timestamp = int(datetime.today().timestamp())
-        state_filename = f"{self.dataset.get_name()}-state-{timestamp}.pt"
-        torch.save(self.model.state_dict(), path.join(SAVED_MODELS_DIR, state_filename))
-        # Uncomment to also save entire model (not preffered):
-        # model_filename = f"{self.dataset.get_name()}-model-{timestamp}.pt"
-        # torch.save(self.model, path.join(SAVED_MODELS_DIR, model_filename))
-        

@@ -2,7 +2,7 @@
 from vision.model import EvalutationResult
 from PIL import Image, ImageDraw
 
-def draw_boxes(img: Image, result: EvalutationResult, color="red", draw_categories=True, draw_score=True) -> Image:
+def draw_boxes(img: Image, result: EvalutationResult, color="red", draw_categories=False, draw_score=False) -> Image:
     box_num = len(result["boxes"])
     draw = ImageDraw.Draw(img)
 
