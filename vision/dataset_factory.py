@@ -2,13 +2,13 @@ import os
 from typing import Callable
 
 
-from vision.dataset import CocoDatasetImpl
+from vision.dataset import CocoDataset
 from vision.helpers.train import get_transform
 
 from constants import ROOT_DIR
 
 
-class UAVVasteDataset(CocoDatasetImpl):
+class UAVVasteDataset(CocoDataset):
   
     def __init__(self, name: str, transforms: Callable, train: bool = False):
         super().__init__(
@@ -22,7 +22,7 @@ class UAVVasteDataset(CocoDatasetImpl):
         return self.name
     
 
-class TacoDataset(CocoDatasetImpl):
+class TacoDataset(CocoDataset):
   
     def __init__(self, name: str, transforms: Callable, train: bool = False):
         self.name = name
@@ -40,7 +40,7 @@ class TacoDataset(CocoDatasetImpl):
         
 ########### Factory ############
 
-def create_dataset(name: str, train: bool) -> CocoDatasetImpl:
+def create_dataset(name: str, train: bool) -> CocoDataset:
     if name == "UAVVaste": return UAVVasteDataset("UAVVaste", get_transform(train=train), train)
     elif name == "TACO": return TacoDataset("TACO", get_transform(train=train), train)
     raise Exception(f"'{name}' is not a valid dataset name")

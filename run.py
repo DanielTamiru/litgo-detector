@@ -3,7 +3,7 @@ from config import Config
 from argparse import ArgumentParser
 
 from PIL import Image
-from vision.model import MaskRCNNLitgoModel
+from vision.model_factory import create_model
 from vision.draw import draw_boxes
 
 parser = ArgumentParser(
@@ -22,12 +22,11 @@ parser.add_argument('-s', action='store_true', help='display confidence score on
 
 args = parser.parse_args()
 
-
-model = MaskRCNNLitgoModel(
+model = create_model(
+    type=Config.get("model_type"),
     dataset_name=Config.get("dataset_name"), 
     saved_model_filename=Config.get("saved_model_filename")
 )
-
 
 with Image.open(args.filepath) as img:
     result = model.evaluate(img, score_threshold=Config.get("score_threshold"))

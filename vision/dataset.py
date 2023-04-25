@@ -13,9 +13,9 @@ from typing import Callable, Tuple
 from vision.helpers.coco_utils import ConvertCocoPolysToMask
 
 
-class CocoDataset(torch.utils.data.Dataset):
+class AbstractCocoDataset(torch.utils.data.Dataset):
     coco: COCO
-
+    
     def get_name(self) -> str:
         raise NotImplementedError
     
@@ -40,7 +40,7 @@ class CocoDataset(torch.utils.data.Dataset):
     
 
 
-class CocoDatasetImpl(CocoDataset):
+class CocoDataset(AbstractCocoDataset):
 
     def __init__(self, img_dir: str, annot_path: str, transforms: Callable, auto_download=False):
         self.root = img_dir # training image directory
