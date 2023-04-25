@@ -5,7 +5,7 @@ class Config:
 
   __conf = {
     "host": env.get("HOSTNAME", 'localhost'),
-    "port": int(env.get("LITGO_SERVER_PORT", '5000')),
+    "port": int(env.get("LITGO_SERVER_PORT", '8000')),
 
     "dataset_name": "UAVVaste", # alternatively: "TACO"
     "model_type": "MaskRCNN", # alternatively: ...
