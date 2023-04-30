@@ -11,6 +11,8 @@ from constants import ROOT_DIR
 class UAVVasteDataset(CocoDataset):
   
     def __init__(self, name: str, transforms: Callable, train: bool = False):
+        self.name = name
+
         super().__init__(
             img_dir=os.path.join(ROOT_DIR, 'data/UAVVaste/images'),
             annot_path=os.path.join(ROOT_DIR, 'data/UAVVaste/annotations.json'),
