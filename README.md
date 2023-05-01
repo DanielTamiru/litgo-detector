@@ -23,9 +23,12 @@ I made this service loosely following pytorch's [object detection finetuning tut
 You very likely want to use saved models and to do so, you need to download the files in this [drive folder](https://drive.google.com/drive/folders/1ep7SQn6rUYkviYS-qWdAQSzOT7gH_BYe?usp=share_link) into `vision/saved_models`.
 
 There are three ways to run this service:
-- `app/serve.py`
-- `app/run.py` 
-- `app/train.py`
+- `app/serve.py`: starts a flask HTTP server that evaluates images from form-data PUTs. 
+<img width="606" alt="image" src="https://user-images.githubusercontent.com/46784904/235442191-2c328f0f-cbdd-4165-8a55-350fbfd69f91.png">
+
+- `app/run.py`: a local script you can run on the file path to an image - `python app/run.py path/to/image -ls --color red`. The `l` option adds litter labels to the bounding boxes and the `s` option adds the confidence score.
+
+- `app/train.py`: a local script you can use to train a given model on a specified dataset. Once training is complete, the model will be saved in `vision/saved_models` with the name `[dataset]-[model]-state-[timestamp].pt`. **Note:** training will only work if your machine has a CUDA-capable GPU, or `if torch.cuda.is_available() == True`.
 
 ### Baremetal
 
