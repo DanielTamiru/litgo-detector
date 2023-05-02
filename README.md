@@ -1,6 +1,5 @@
 # litgo-detector
 
-
 ### **LITGO.AI**
 
 Litgo is a microservice-based application I am developing for reporting/cleaning city litter, where pictures of urban waste are evaluated by a trained convolutional neural network (CNN). Users take pictures of litter in their environment and either report it to region representatives or clean it themselves. They earn points based this choice and on the amount (and potentially type) of litter identified.
