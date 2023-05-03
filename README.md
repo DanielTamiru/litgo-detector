@@ -34,5 +34,6 @@ Simply create a python virtual environment using the venv tool of your choice an
 
 ### Docker
 
+The Dockerfile builds an image that runs `server.py`.  
 
 
