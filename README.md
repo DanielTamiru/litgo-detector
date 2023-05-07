@@ -1,6 +1,5 @@
 # litgo-detector
 
-
 ### **LITGO.AI**
 
 Litgo is a microservice-based application I am developing for reporting/cleaning city litter, where pictures of urban waste are evaluated by a trained convolutional neural network (CNN). Users take pictures of litter in their environment and either report it to region representatives or clean it themselves. They earn points based this choice and on the amount (and potentially type) of litter identified.
@@ -9,8 +8,7 @@ Litgo is a microservice-based application I am developing for reporting/cleaning
 
 This is the decomposed Litgo detector service, an HTTP server that receives images in PUT requests and returns information about the amount and type of litter in those images, including an annotated image with labels and boxes.
 
-![labeled_litter](https://user-images.githubusercontent.com/46784904/233865846-0d740a81-5d87-4b6f-b395-f09dfe1378b6.jpeg)
-
+![tmp0t507npo](https://user-images.githubusercontent.com/46784904/236659272-3964160d-4f84-4db1-8a44-06c8e64a837a.png)
 
 While this service was built for Litgo, none of its code or functionality is Litgo-specific. Feel free to incorporate this service into your own innovations. If you are new to computer vision models, object detection, or machine learning in general, don't worry! So was I before working on this project. I included a [wiki doc](https://github.com/DanielTamiru/litgo-detector/wiki/CNNs-and-Object-Detection) that helps explain what's going on at a high level.
 
@@ -23,13 +21,18 @@ I made this service loosely following pytorch's [object detection finetuning tut
 You very likely want to use saved models and to do so, you need to download the files in this [drive folder](https://drive.google.com/drive/folders/1ep7SQn6rUYkviYS-qWdAQSzOT7gH_BYe?usp=share_link) into `vision/saved_models`.
 
 There are three ways to run this service:
-- `app/serve.py`
-- `app/run.py` 
-- `app/train.py`
+- `app/serve.py`: starts a flask HTTP server that evaluates images from form-data PUTs. 
+<img width="606" alt="image" src="https://user-images.githubusercontent.com/46784904/235442191-2c328f0f-cbdd-4165-8a55-350fbfd69f91.png">
+
+- `app/run.py`: a local script you can run on the file path to an image - `python app/run.py path/to/image -ls --color red`. The `l` option adds litter labels to the bounding boxes and the `s` option adds the confidence score.
+
+- `app/train.py`: a local script you can use to train a given model on a specified dataset. Once training is complete, the model will be saved in `vision/saved_models` with the name `[dataset]-[model]-state-[timestamp].pt`. **Note:** training will only work if your machine has a CUDA-capable GPU, or `if torch.cuda.is_available() == True`.
 
 ### Baremetal
+Simply create a python virtual environment using the venv tool of your choice and run `pip install -r requirements.txt`
 
 ### Docker
 
+The Dockerfile builds an image that runs `server.py`.  
 
 
