@@ -35,3 +35,5 @@ Simply create a python virtual environment using the venv tool of your choice an
 
 The Dockerfile builds an image that runs `server.py`. Build the image with the command `docker build -t [image name]:[tag]` and run it with
 `docker run -p [host port]:[port in config.py] [image]`.
+
+
