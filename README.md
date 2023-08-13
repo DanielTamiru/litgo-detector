@@ -2,7 +2,7 @@
 
 ### **LITGO.AI**
 
-Litgo is a microservice-based application I am developing for reporting/cleaning city litter, where pictures of urban waste are evaluated by a trained convolutional neural network (CNN). Users take pictures of litter in their environment and either report it to region representatives or clean it themselves. They earn points based this choice and on the amount (and potentially type) of litter identified.
+Litgo is a microservice-based application I am developing for reporting/cleaning city litter, where pictures of urban waste are evaluated by a trained convolutional neural network (CNN). Users take pictures of litter in their environment and either report it to region representatives or clean it themselves. They earn points based on this choice and on the amount (and potentially type) of litter identified.
 
 ### **Detector Service**
 
@@ -29,7 +29,7 @@ There are three ways to run this service:
 - `app/train.py`: a local script you can use to train a given model on a specified dataset. Once training is complete, the model will be saved in `vision/saved_models` with the name `[dataset]-[model]-state-[timestamp].pt`. **Note:** training will only work if your machine has a CUDA-capable GPU, or `if torch.cuda.is_available() == True`.
 
 ### Baremetal
-Simply create a python virtual environment using the venv tool of your choice and run `pip install -r requirements.txt`
+Simply create a Python virtual environment using the venv tool of your choice and run `pip install -r requirements.txt`
 
 ### Docker
 
